@@ -21,24 +21,15 @@ app.get '/deployments/dropbox/check', (req, res) ->
 
 # This is the same code that called in preview mode
 # Except it tells User#syncDropbox to not include a cursor
-app.get '/deployments/dropbox/import', (req, res) ->
+app.post '/deployments/dropbox/import', (req, res, next) ->
   return res.status(401).end() unless req?.user?.hasRole ['administrator']
 
   req.user.syncDropbox req.hostname, true, (e)->
     console.log 'Done live-syncing Dropbox for preview', arguments
-    next()
+    res.status(200).end()
 
 # Takes the current user’s Dropbox and promotes it to live
 app.get '/deployments/dropbox', (req, res) ->
-  return res.status(401).end() unless req.user?.hasRole ['administrator'] and req.user?.dropbox?.token
-
-  client = req.user.getDropboxClient()
-  return res.status(500).end() unless client
-
-  deployment = new Deployment
-    author: user._id
-
-app.post '/deployments/dropbox', (req, res) ->
   return res.status(401).end() unless req.user?.hasRole ['administrator'] and req.user?.dropbox?.token
 
   client = req.user.getDropboxClient()
@@ -56,6 +47,7 @@ app.post '/deployments', (req, res) ->
   res.send {status: 'started'}
 
   deployment.save ->
+    # todo: websocket notification
     console.log 'postsave', arguments
     console.log arguments[0]?.errors?.source
 

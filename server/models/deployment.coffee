@@ -77,15 +77,22 @@ deploymentSchema.post 'save', ->
 
 deploymentSchema.statics.scaffoldFromBase = ->
   console.log 'todo: Deployment#scaffoldFromBase'
+
+  # This is more of a migration script at this point
+  # This also happens during install
+  mongoose.model('User').findOne 'roles.name': 'administrator', (err, user) =>
+    return console.error err if err
+
+    fs.copy "./deployments/base/", "./deployments/#{user.email}", =>
+      @create author: user.id
+
   # This will create a deployment
-
-
 
 # Writes a deployment to live
 # (service agnostic at this point)
 deploymentSchema.methods.unpack = ->
   # pipe file from MongoDB
-  console.log 'Unpacking deployment', @
+  console.log 'Unpacking deployment'
   if @source
     tarPath = './deployments/staging.tar.gz'
     console.log "Creating #{tarPath}"
@@ -96,5 +103,8 @@ deploymentSchema.methods.unpack = ->
       tarball.extractTarball tarPath, './deployments/live/', ->
         console.log 'Extracted Tarball'
         fs.remove tarPath
+
+deploymentSchema.statics.getLive = (callback) ->
+  @findOne().sort('-timestamp').exec callback
 
 module.exports = db.model 'Deployment', deploymentSchema
