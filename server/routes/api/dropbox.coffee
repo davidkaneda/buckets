@@ -6,42 +6,44 @@ config = require '../../config'
 
 module.exports = app = express()
 
-passport.use new DropboxStrategy
-  consumerKey: process.env.DROPBOX_APP_KEY
-  consumerSecret: process.env.DROPBOX_APP_SECRET
-  callbackURL: process.env.DROPBOX_CALLBACK_URL
-  passReqToCallback: yes
-, (req, token, tokenSecret, profile, done) ->
-  return done null, false unless req?.user and token and tokenSecret and profile?.id
-  console.log 'Adding Dropbox to user'
-  req.user.dropbox =
-    id: profile.id
-    displayName: profile.displayName
-    token: token
-    tokenSecret: tokenSecret
-    meta: profile._json
+if process.env.DROPBOX_APP_KEY and process.env.DROPBOX_APP_SECRET and process.env.DROPBOX_CALLBACK_URL
 
-  delete profile._raw
-  delete profile._json
+  passport.use new DropboxStrategy
+    consumerKey: process.env.DROPBOX_APP_KEY
+    consumerSecret: process.env.DROPBOX_APP_SECRET
+    callbackURL: process.env.DROPBOX_CALLBACK_URL
+    passReqToCallback: yes
+  , (req, token, tokenSecret, profile, done) ->
+    return done null, false unless req?.user and token and tokenSecret and profile?.id
+    console.log 'Adding Dropbox to user'
+    req.user.dropbox =
+      id: profile.id
+      displayName: profile.displayName
+      token: token
+      tokenSecret: tokenSecret
+      meta: profile._json
 
-  req.user.save done
+    delete profile._raw
+    delete profile._json
 
-  # background async for now (todo: pubsub)
-  req.user.initializeDropbox req.hostname
+    req.user.save done
 
-app.get '/connect/dropbox', passport.authorize('dropbox')
+    # background async for now (todo: pubsub)
+    req.user.initializeDropbox req.hostname
 
-app.get '/disconnect/dropbox', (req, res, next) ->
-  console.log 'Disconnecting user', req.user
-  if req.user?.dropbox
-    req.user.dropbox = null
-    req.user.save (e, user) ->
-      res.status(200).end()
-  else
-    res.status(400).end()
+  app.get '/connect/dropbox', passport.authorize('dropbox')
 
-app.get '/auth/dropbox/callback',
-  passport.authorize 'dropbox',
-    failureRedirect: "/#{config.adminSegment}/nope"
-, (req, res) ->
-  res.redirect "/#{config.adminSegment}/users/#{req.user.email}"
+  app.get '/disconnect/dropbox', (req, res, next) ->
+    console.log 'Disconnecting user', req.user
+    if req.user?.dropbox
+      req.user.dropbox = null
+      req.user.save (e, user) ->
+        res.status(200).end()
+    else
+      res.status(400).end()
+
+  app.get '/auth/dropbox/callback',
+    passport.authorize 'dropbox',
+      failureRedirect: "/#{config.adminSegment}/nope"
+  , (req, res) ->
+    res.redirect "/#{config.adminSegment}/users/#{req.user.email}"
