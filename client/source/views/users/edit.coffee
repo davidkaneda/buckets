@@ -32,7 +32,7 @@ module.exports = class EditUserView extends View
     else
       data.roles = _.reject data.roles, (r) ->
         r.name is 'administrator'
-
+    data.previewMode = data.previewMode?
     name = data.name
 
     @submit(@model.save(data, wait: yes)).done ->
