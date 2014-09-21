@@ -29,8 +29,6 @@ deploymentSchema = new mongoose.Schema
 # Validation takes care of .tar.gz'ing the author’s env folder
 # todo: Switch to GridFS and stream to it directly (as opposed to saving/deleting zip...)
 deploymentSchema.pre 'validate', (next) ->
-  time = new Date().toISOString().replace(/\:/g, '.')
-  filename = "./tmp/#{@author.email}@#{time}.tar.gz"
 
   author = @author
 
@@ -39,17 +37,18 @@ deploymentSchema.pre 'validate', (next) ->
       @invalidate 'author', 'Not a valid User'
       return next()
 
+    time = new Date().toISOString().replace(/\:/g, '.')
+    filename = "./deployments/#{user.email}@#{time}.tar.gz"
     output = fs.createWriteStream filename
     output.on 'close', =>
       size = archive.pointer()
-      console.log 'New deployment', "./tmp/#{user.email}@#{time}.tar.gz", filesize size
+      console.log 'New deployment', filename, filesize size
 
       @invalidate 'source', 'File size too big' if size > 15000000 # Cap at 15mb for now
       @invalidate 'source', 'No content' if size is 0
 
       @source = fs.readFileSync(filename)
 
-      console.log 'DONE', @, @invalidate
       # Move on to return response
       next()
 
@@ -69,7 +68,6 @@ deploymentSchema.pre 'validate', (next) ->
 
 # After deployment is saved, copy it over to live
 deploymentSchema.post 'save', ->
-  console.log 'POST SAVE', @author
   mongoose.model('User').findById @author, (e, user) ->
     throw e if e
     console.log 'well here we are', arguments
@@ -80,6 +78,7 @@ deploymentSchema.post 'save', ->
 deploymentSchema.statics.scaffoldFromBase = ->
   console.log 'todo: Deployment#scaffoldFromBase'
   # This will create a deployment
+
 
 
 # Writes a deployment to live

@@ -1,9 +1,11 @@
 express = require 'express'
+fs = require 'fs-extra'
 
 User = require '../../models/user'
 Bucket = require '../../models/bucket'
 Entry = require '../../models/entry'
 Route = require '../../models/route'
+Deployment = require '../../models/deployment'
 
 bucketSeed = require '../../models/seed/buckets'
 routeSeed = require '../../models/seed/routes'
@@ -26,7 +28,7 @@ app.post '/install', (req, res) ->
     newUser.save (err, newUser) ->
 
       return renderError err if err
-
+      # We should parallelize this at some point
       Route.create(routeSeed).then( ->
         Bucket.create bucketSeed
       ).then( (bucket) ->
@@ -35,5 +37,7 @@ app.post '/install', (req, res) ->
           entry.author = newUser.id
         Entry.create entrySeed
       , renderError).then ->
-        req.login newUser, ->
-          res.status(201).send newUser
+        fs.copy "./deployments/base/", "./deployments/#{newUser.email}", ->
+          Deployment.create author: newUser.id
+          req.login newUser, ->
+            res.status(201).send newUser

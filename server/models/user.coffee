@@ -174,7 +174,7 @@ userSchema.methods.initializeDropbox = (host) ->
                 return callback(e) if e
                 client.put file.writePath, buffer.toString(), (status, reply) ->
                   console.log 'PUT', file.writePath
-                  callback false if status isnt 200
+                  return callback false if status isnt 200
                   callback null, reply
             , callback
         ,
