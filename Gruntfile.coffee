@@ -1,5 +1,4 @@
 mongoose = require 'mongoose'
-
 module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON 'package.json'
@@ -147,8 +146,12 @@ module.exports = (grunt) ->
       dev:
         options:
           spawn: false
+          # background: false
           script: 'server/start.coffee'
           opts: ['node_modules/coffee-script/bin/coffee']
+          args: ['--debug-brk']
+          delay: 10
+          debug: yes
 
     less:
       app:

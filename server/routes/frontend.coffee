@@ -1,29 +1,56 @@
 # Middleware to control the rest of the requests.
-
 async = require 'async'
 hbs = require 'hbs'
 fastly = require 'fastly'
 pathRegexp = require 'path-to-regexp'
 express = require 'express'
 _ = require 'underscore'
-
+path = require 'path'
 config = require '../config'
 Route = require '../models/route'
+fs = require 'fs'
 
 module.exports = app = express()
-tplPath = config.templatePath
 
 require('../lib/renderer')(hbs)
 
-app.set 'views', tplPath
+plugins = app.get 'plugins'
+
+# If we're in preview mode, override the default static middleware
+app.use '/*', (req, res, next) ->
+  return next() unless req.user?.dropbox? and req.user.previewMode is yes and req.params?[0]?.length > 0
+
+  src = path.resolve("./deployments/#{req.user.email}/", req.params?[0])
+
+  # Bad practice, but not so bad
+  if fs.existsSync src
+    res.sendFile src, (err) ->
+      if err
+        console.error 'Error serving static asset.', err, src
+        res.status(400).end()
+  else
+    next()
 
 app.use express.static config.publicPath, maxAge: 86400000 * 7 # One week
 
-plugins = app.get 'plugins'
+# Set view path based on preview mode
+# And do a dropbox sync if previewing
+app.use (req, res, next) ->
+  if req.user?.dropbox? and req.user.previewMode is yes
+    console.log 'Using Preview mode for ' + req.user.email
+    app.set 'views', "./deployments/#{req.user.email}/"
+    req.user.syncDropbox req.hostname, false, (e)->
+      console.log 'Done live-syncing Dropbox for preview', arguments
+      next()
+  else
+    console.log 'Using publicPath'
+    app.set 'views', config.publicPath
+    next()
 
 staticRegex = /\.(gif|jpg|css|js|ico|woff|ttf)$/
 
 app.all '/:frontend*?', (req, res, next) ->
+
   # Cheating a bit, but if it's not in their publicPath, they shouldn't be serving it w/Templates
   return next() if staticRegex.test req.path
 
@@ -88,10 +115,10 @@ app.all '/:frontend*?', (req, res, next) ->
           callback false
           # console.log '{{next}} was called.'
         else if err
-          throw err
+          # throw err
           tplErr = {}
           tplErr[localTemplateData.route.template] = err.message
-          globalErrors.push tplErr
+          templateData.errors.push tplErr
           callback false
 
         else if html
@@ -117,15 +144,10 @@ app.all '/:frontend*?', (req, res, next) ->
       res.render 'error', templateData, (err, html) ->
         console.log 'Buckets caught an error trying to render the error page.', err if err
         if err
-          res.status(500)
-
-          if config.env is 'production' or res.headersSent
+          res.status(404)
+          if config.env is 'production' or res.headersSent or config.catchAll
             res.end()
           else
-            res.send """
-              <p><strong>Buckets caught an error trying to render the error page (rough).</strong></p>
-
-              #{err}
-            """
+            next()
         else
           res.status(404).send html

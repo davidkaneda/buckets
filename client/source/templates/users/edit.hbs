@@ -11,6 +11,7 @@
         {{input 'password' '' placeholder="New password" type="password"}}
         {{input 'passwordconfirm' '' placeholder="Confirm new password" type="password"}}
       </div>
+      {{hidden 'admin' isAdmin}}
 
     {{!-- Viewing someone else's --}}
     {{else}}
@@ -28,6 +29,14 @@
         {{checkbox 'admin' isAdmin label="User is an administrator"}}
       {{/hasRole}}
     {{/is}}
+
+    {{#if dropbox}}
+      {{icon 'dropbox'}} Connected <a href="/api/disconnect/dropbox" class="btn btn-sm btn-danger btn-icon">Disconnect</a>
+
+      {{checkbox 'previewMode' previewMode label="Preview mode"}}
+    {{else}}
+      <a href="/api/connect/dropbox" class="btn btn-link btn-large btn-icon noscript">{{icon 'dropbox'}} Connect</a>
+    {{/if}}
 
     <div class="pull-right">
       {{#if id}}
