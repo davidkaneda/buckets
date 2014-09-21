@@ -15,6 +15,9 @@ module.exports = class EditUserView extends View
   events:
     'submit form': 'submitForm'
     'click [href="#remove"]': 'clickRemove'
+    'click [href="#importDropbox"]': 'clickImportDropbox'
+    'click [href="#deploy"]': 'clickDeploy'
+    'click [href="#disconnectDropbox"]': 'disconnectDropbox'
 
   getTemplateData: ->
     _.extend super,
@@ -44,3 +47,18 @@ module.exports = class EditUserView extends View
       @model.destroy(wait: yes).done =>
         toastr.success 'User has been removed.'
         @dispose()
+
+  disconnectDropbox: ->
+    e.preventDefault()
+
+  clickImportDropbox: (e) ->
+    e.preventDefault()
+    $.post '/api/deployments/dropbox/import'
+      .done ->
+        toastr.success 'Your personal preview environment has been updated.'
+
+  clickDeploy: (e) ->
+    e.preventDefault()
+    $.post '/api/deployments'
+      .done ->
+        toastr.success 'The website has been updated.'
