@@ -66,6 +66,7 @@ userSchema = new Schema
       delete ret.password # Since we include virtuals
       delete ret._id
       delete ret.__v
+      ret.dropbox = doc.dropbox?
       ret
 
 userSchema.methods.authenticate = (password) ->
@@ -193,7 +194,8 @@ userSchema.methods.initializeDropbox = (host) ->
       user.dropbox.cursor = reply.cursor
       user.save()
 
-userSchema.methods.syncDropbox = (root='/', reset, callback) ->
+
+userSchema.methods.syncDropbox = (host='', reset, callback) ->
   client = @getDropboxClient()
   user = @
   return unless client
@@ -216,6 +218,9 @@ userSchema.methods.syncDropbox = (root='/', reset, callback) ->
     for entry in reply.entries
       [path, metadata] = entry
 
+      # Only use items from our targetDir
+      continue unless path.indexOf "/#{host}" is 0
+
       if metadata
         if metadata.is_dir
           folders.push metadata.path # Include caps?
@@ -226,8 +231,7 @@ userSchema.methods.syncDropbox = (root='/', reset, callback) ->
 
     console.log 'Syncing updates', files: files, folders: folders, removed: removed
 
-    rootRegexp = new RegExp "^\/#{root}"
-    createPath = (str) -> "./deployments/#{targetDir}#{str.replace(rootRegexp, '')}"
+    createPath = (str) -> "./deployments/#{targetDir}" + str.replace("/#{host}", '')
 
     async.parallel [
       # Add files (limit 4)
@@ -238,16 +242,13 @@ userSchema.methods.syncDropbox = (root='/', reset, callback) ->
             path = createPath(metadata.path)
             fs.outputFile path, reply.toString(), (e) ->
               console.log 'Wrote file', path
-              return callback e if e
-              callback()
+              callback e, metadata
         , callback
     ,
       # Add folders (no limit)
       (callback) ->
         async.map folders, (folder, callback) ->
-          fs.ensureDir createPath(folder), ->
-            console.log 'ensured dir', createPath(folder)
-            callback()
+          fs.ensureDir createPath(folder), callback
         , callback
     ,
       # Remove files (limit 8)
@@ -255,16 +256,17 @@ userSchema.methods.syncDropbox = (root='/', reset, callback) ->
         async.map removed, (item, callback) ->
           fs.remove createPath(item)
           console.log 'REMOVING ITEM'
-          callback()
+          callback arguments
         , callback
 
-    ], (e, stuff) ->
+    ], (e, written) ->
       console.error e if e
       return callback e if e
+
       console.log 'Done syncing Dropbox', arguments
       user.set('dropbox.cursor', reply.cursor)
       user.save ->
-        callback()
+        callback e, written
         console.log "Saved new Dropbox cursor for User."
 
 userSchema.virtual 'email_hash'

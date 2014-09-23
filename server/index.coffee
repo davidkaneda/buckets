@@ -17,7 +17,7 @@ class Buckets
   constructor: (config) ->
     @config = _.extend require('./config'), config
 
-    Deployment.findOne().sort('-timestamp').exec (err, deployment) =>
+    Deployment.getLive (err, deployment) =>
       if deployment
         setTimeout ->
           deployment.unpack()

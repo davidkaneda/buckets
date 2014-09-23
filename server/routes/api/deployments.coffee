@@ -1,3 +1,4 @@
+_ = require 'underscore'
 express = require 'express'
 path = require 'path'
 async = require 'async'
@@ -9,15 +10,18 @@ module.exports = app = express()
 
 # Just a proxy for Dropbox#delta
 app.get '/deployments/dropbox/check', (req, res) ->
-  return res.status(401).end() unless req?.user?.hasRole ['administrator']
+  return res.status(401).end() unless req.user?.hasRole ['administrator']
 
-  User.findOne {dropbox: $exists: yes}, (e, user) ->
-    return res.send 'No user!' unless user
-    return res.send 'No token!' unless user.dropbox.token
+  client = req.user.getDropboxClient()
 
-    client = user.getDropboxClient()
+  return req.status(400).end() unless client
 
-    client.delta (status, reply) -> res.status(status).send(reply)
+  cursor = req.user.dropbox?.cursor
+
+  client.delta cursor: cursor, (status, reply) ->
+    if status is 200 and reply?.entries
+      reply.entries = _.reject reply.entries, (entry) -> entry[0].indexOf("/#{req.hostname}") isnt 0
+    res.status(status).send(reply)
 
 # This is the same code that called in preview mode
 # Except it tells User#syncDropbox to not include a cursor

@@ -12,7 +12,6 @@
         {{input 'passwordconfirm' '' placeholder="Confirm new password" type="password"}}
       </div>
       {{hidden 'admin' isAdmin}}
-
     {{!-- Viewing someone else's --}}
     {{else}}
       {{#if id}}
@@ -30,18 +29,20 @@
       {{/hasRole}}
     {{/is}}
 
-    <h5>Dropbox</h5>
-    {{#if dropbox}}
-      {{checkbox 'previewMode' previewMode label="Preview local changes" help="Preview Mode shows the changes from your own personal copy (<code>~/Dropbox/Apps/Buckets/</code>) as well as scheduled entries."}}
-      <a href="#importDropbox" class="btn btn-default">Import</a>
-      <a href="#deploy" class="btn btn-primary">Deploy your preview site</a>
+    {{checkbox 'previewMode' previewMode label="View site in staging mode" help="View upcoming design changes, if any exist."}}
 
+    {{#if dropboxEnabled}}
 
-      <a href="/api/disconnect/dropbox" class="btn btn-xs btn-link btn-icon btn-icon-small">{{icon 'dropbox'}} Disconnect</a>
+      <h5>Dropbox</h5>
+      {{#if dropbox}}
+        <a href="#importDropbox" class="btn btn-default">Import</a>
+        <a href="#deploy" class="btn btn-primary">Deploy your preview site</a>
+        <a href="/api/disconnect/dropbox" class="btn btn-xs btn-link btn-icon btn-icon-small">{{icon 'dropbox'}} Disconnect</a>
+      {{else}}
+        <a href="/api/connect/dropbox" class="btn btn-link btn-large btn-icon noscript">{{icon 'dropbox'}} Connect to Dropbox</a>
+        <p>Deploy design updates with one click or stage changes and preview them.</p>
+      {{/if}}
 
-    {{else}}
-      <a href="/api/connect/dropbox" class="btn btn-link btn-large btn-icon noscript">{{icon 'dropbox'}} Connect to Dropbox</a>
-      <p>Deploy design updates with one click or stage changes and preview them.</p>
     {{/if}}
 
     <div class="pull-right">

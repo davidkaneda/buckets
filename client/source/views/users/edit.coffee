@@ -23,6 +23,7 @@ module.exports = class EditUserView extends View
     _.extend super,
       currentUser: mediator.user?.toJSON()
       isAdmin: @model.hasRole('administrator')
+      dropboxEnabled: mediator.options?.dropboxEnabled
 
   submitForm: (e) ->
     e.preventDefault()

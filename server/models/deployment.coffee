@@ -94,11 +94,11 @@ deploymentSchema.methods.unpack = ->
   # pipe file from MongoDB
   console.log 'Unpacking deployment'
   if @source
-    tarPath = './deployments/staging.tar.gz'
+    tarPath = './deployments/live.tar.gz'
     console.log "Creating #{tarPath}"
     fs.outputFile tarPath, @source.toObject()?.buffer, (e) ->
       throw e if e
-      console.log 'Wrote Tarball from DB', error: e, path: tarPath
+      console.log 'Wrote Tarball from Mongo', path: tarPath
       fs.ensureDir './deployments/live/'
       tarball.extractTarball tarPath, './deployments/live/', ->
         console.log 'Extracted Tarball'
