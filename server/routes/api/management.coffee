@@ -7,7 +7,7 @@ config = require '../../config'
 Bucket = require '../../models/bucket'
 Entry = require '../../models/entry'
 Route = require '../../models/route'
-Template = require('../../lib/template')(config?.templatePath)
+Template = require('../../lib/template')(config?.publicPath)
 User = require '../../models/user'
 
 module.exports = app = express()

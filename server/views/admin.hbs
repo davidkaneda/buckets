@@ -59,6 +59,9 @@
           {{~#if cloudinary~}}
             ,cloudinary: {{~json cloudinary~}}
           {{~/if~}}
+          {{~#if dropboxEnabled~}}
+            ,dropboxEnabled: true
+          {{~/if~}}
         });
 
         $(preload).fadeOut(function(){

@@ -11,7 +11,7 @@ module.exports = (hbs) ->
 
   # Add Swag helpers
   Swag.registerHelpers hbs.handlebars
-  hbs.registerPartials config.templatePath
+  hbs.registerPartials config.publicPath
 
   # formatTime helper
   hbs.registerHelper 'formatTime', (value, options) ->

@@ -10,15 +10,20 @@ compression = require 'compression'
 responseTime = require 'response-time'
 express = require 'express'
 hbs = require 'hbs'
-fs = require 'fs'
 
+Deployment = require './models/deployment'
 
 class Buckets
   constructor: (config) ->
+    @config = _.extend require('./config'), config
 
-    baseConfig = require './config'
-
-    @config = baseConfig = _.extend baseConfig, config
+    Deployment.getLive (err, deployment) =>
+      if deployment
+        setTimeout ->
+          deployment.unpack()
+        , 0
+      else
+        Deployment.scaffoldFromBase()
 
     try
       newrelicConfig = require '../newrelic'
@@ -73,7 +78,6 @@ class Buckets
     done?() if @server
     @server ?= @app.listen @config.port, =>
       console.log ("\nBuckets is running at " + "http://localhost:#{@config.port}/".underline.bold).yellow
-      done?()
 
   stop: (done) ->
     done?() unless @server

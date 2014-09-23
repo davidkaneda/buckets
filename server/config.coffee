@@ -8,8 +8,7 @@ config =
     salt: 'BUCKETS4LIFE!!1'
     port: process.env.PORT || 3000
     env: env
-    templatePath: "#{__dirname}/../user/templates/"
-    publicPath: "#{__dirname}/../user/public/"
+    publicPath: "#{__dirname}/../deployments/live/"
     pluginsPath: "#{__dirname}/../node_modules/"
     catchAll: yes
     autoStart: yes
