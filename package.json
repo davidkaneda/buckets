@@ -21,6 +21,9 @@
     }
   },
   "author": "David Kaneda <dk@morfunk.com> (http://www.davidkaneda.com)",
+  "contributors": [
+    "Assembly Community (https://assembly.com/buckets/people)"
+  ],
   "license": "AGPL-3.0",
   "bugs": {
     "url": "https://assembly.com/buckets/bounties"
