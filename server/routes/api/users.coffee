@@ -11,7 +11,7 @@ module.exports = app = express()
 
 
 ###
-  @apiDefineErrorStructure UserNotFound
+  @apiDefine UserNotFound
   @apiErrorExample Error-Response:
   HTTP/1.1 404 Not Found
   {
@@ -20,7 +20,7 @@ module.exports = app = express()
 ###
 
 ###
-  @apiDefineSuccessStructure User
+  @apiDefine UserSuccess
   @apiSuccessExample Success-Response:
   HTTP/1.1 200
   {
@@ -39,7 +39,7 @@ module.exports = app = express()
 ###
 
 ###
-  @apiDefineSuccessStructure Users
+  @apiDefine UsersSuccess
   @apiSuccessExample Success-Reponse:
   HTTP/1.1 200
   [
@@ -86,6 +86,7 @@ module.exports = app = express()
   @apiName GetUsers
 
   @apiPermission administrator
+  @apiUse UsersSuccess
 ###
 
 app.route('/users')
@@ -113,7 +114,7 @@ app.route('/users')
 
   @apiPermission administrator
 
-  @apiSuccessStructure User
+  @apiUse UserSuccess
 ###
 
 ###
@@ -132,7 +133,7 @@ app.route('/users')
   @apiParam (Changing password) {String} [passwordconfirm] The new password you would like to use.
   @apiParam (Changing password) {String} [oldpassword] Your current password.
 
-  @apiSuccessStructure User
+  @apiUse UserSuccess
 
   @apiSuccessExample Success-Response:
     HTTP/1.1 200 OK
@@ -195,7 +196,7 @@ app.route('/users/:userID')
 
   @apiParam {String} email User’s email address
 
-  @apiErrorStructure UserNotFound
+  @apiUse UserNotFound
   @apiErrorExample Error-Response:
     HTTP/1.1 400
 

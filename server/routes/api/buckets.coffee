@@ -6,24 +6,41 @@ User = require '../../models/user'
 module.exports = app = express()
 
 ###
-  @apiDefineStructure Bucket
-  @apiParam {String} name Name of the Bucket. Typically in plural form, eg. "Articles"
-  @apiParam {String} slug Slug for the bucket, a string without spaces, for use in template tags and API calls, eg. "articles"
-  @apiParam {String} [titlePlaceholder="New {{singular}}"] The placeholder text used when a user is adding a new Entry into this Bucket.
-  @apiParam {Object[]} [fields] Array of Fields for this Bucket. Fields define the structure of a Bucket’s content.
+  @apiDefine BucketStructure
+  @apiParam {String} name Name of the Bucket. Typically in plural form,
+      eg. "Articles"
+  @apiParam {String} slug Slug for the bucket, a string without spaces, for use
+      in template tags and API calls, eg. "articles"
+  @apiParam {String} [titlePlaceholder="New {{singular}}"] The placeholder text
+      used when a user is adding a new Entry into this Bucket.
+  @apiParam {Object[]} [fields] Array of Fields for this Bucket. Fields define
+      the structure of a Bucket’s content.
   @apiParam {String} fields.name Name of the field (used for UI labels).
-  @apiParam {String} fields.slug Slug for the field, used in templates as the field’s key.
-  @apiParam {String} fields.fieldType The type of Field, which defines how its input form is rendered, how it is validated, and how it saves data to the database. The fieldType value **must** match a FieldType provided by Buckets by default (`text`, `textarea`, `checkbox`, `number`), or an installed Buckets plugin (`location` and `markdown` are currently built-in by default).
-  @apiParam {Boolean} [fields.required] Set to true if you want this field to be required.
-  @apiParam {String} [fields.instructions] Optional instructions to show in the UI with the field.
-  @apiParam {Object} [fields.settings] Optional key-value storage for a Field's settings.
-  @apiParam {String} [color="teal"] Color for the Bucket, with options of 'teal', 'purple', 'red', 'yellow', 'blue', 'orange', and 'green'.
-  @apiParam {String} [icon="edit"] Icon for the Bucket, one of 'edit', 'photos', 'calendar', 'movie', 'music-note', 'map-pin', 'quote', 'artboard', or 'contacts-1' (subject to change...)
-  @apiParam {String} [singular] The name of one "Entry" within this Bucket, eg. "Article." Will automatically be created using an inflection library.
+  @apiParam {String} fields.slug Slug for the field, used in templates as the
+      field’s key.
+  @apiParam {String} fields.fieldType The type of Field, which defines how its
+      input form is rendered, how it is validated, and how it saves data to the
+      database. The fieldType value **must** match a FieldType provided by
+      Buckets by default (`text`, `textarea`, `checkbox`, `number`), or an
+      installed Buckets plugin (`location` and `markdown` are currently
+      built-in by default).
+  @apiParam {Boolean} [fields.required] Set to true if you want this field to be
+      required.
+  @apiParam {String} [fields.instructions] Optional instructions to show in the
+      UI with the field.
+  @apiParam {Object} [fields.settings] Optional key-value storage for a Field's
+      settings.
+  @apiParam {String} [color="teal"] Color for the Bucket, with options of
+      'teal', 'purple', 'red', 'yellow', 'blue', 'orange', and 'green'.
+  @apiParam {String} [icon="edit"] Icon for the Bucket, one of 'edit',
+      'photos', 'calendar', 'movie', 'music-note', 'map-pin', 'quote',
+      'artboard', or 'contacts-1' (subject to change...)
+  @apiParam {String} [singular] The name of one "Entry" within this Bucket, eg.
+      "Article." Will automatically be created using an inflection library.
 ###
 
 ###
-  @apiDefineSuccessStructure Members
+  @apiDefine MembersSuccessResponse
   @apiSuccessExample Success-Response:
   HTTP/1.1 200 OK
   [
@@ -49,7 +66,7 @@ module.exports = app = express()
 ###
 
 ###
-  @apiDefineSuccessStructure Bucket
+  @apiDefine BucketSuccess
   @apiSuccessExample Success-Response:
   HTTP/1.1 200 OK
   {
@@ -65,7 +82,7 @@ module.exports = app = express()
 ###
 
 ###
-  @apiDefineSuccessStructure BucketsList
+  @apiDefine BucketsListSuccess
   @apiSuccess {Object[]} results List of buckets. *Currently, this endpoint simply returns an the results array directly — we will switch to always using an Object with "results" keys soon.*
   @apiSuccessExample Success-Response:
   HTTP/1.1 200 OK
@@ -131,10 +148,10 @@ module.exports = app = express()
   @apiVersion 0.0.4
   @apiGroup Buckets
   @apiName PostBucket
-  @apiStructure Bucket
+  @apiUse BucketStructure
 
   @apiPermission administrator
-  @apiSuccessStructure Bucket
+  @apiUse BucketSuccess
 ###
 
 ###
@@ -146,7 +163,7 @@ module.exports = app = express()
 
   @apiPermission contributor/editor/administrator
 
-  @apiSuccessStructure BucketsList
+  @apiUse BucketsListSuccess
 ###
 
 app.route('/buckets')
@@ -187,8 +204,8 @@ app.route('/buckets')
   @apiGroup Buckets
   @apiName PutBucket
 
-  @apiStructure Bucket
-  @apiSuccessStructure Bucket
+  @apiUse BucketStructure
+  @apiUse BucketSuccess
 
   @apiPermission administrator
 ###
@@ -226,7 +243,7 @@ app.route('/buckets/:bucketID')
 
   @apiPermission administrator
 
-  @apiSuccessStructure Members
+  @apiUse MembersSuccessResponse
 ###
 
 app.route('/buckets/:bucketId/members')
@@ -259,7 +276,7 @@ app.route('/buckets/:bucketId/members')
 
   @apiPermission administrator
 
-  @apiSuccessStructure Members
+  @apiUse MembersSuccessResponse
 ###
 
 ###
@@ -274,7 +291,7 @@ app.route('/buckets/:bucketId/members')
 
   @apiPermission administrator
 
-  @apiSuccessStructure Members
+  @apiUse MembersSuccessResponse
 ###
 
 app.route('/buckets/:bucketId/members/:userId')

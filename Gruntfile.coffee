@@ -28,18 +28,18 @@ module.exports = (grunt) ->
           paths: ['./client/source', 'node_modules']
           detectGlobals: no # Disable "detect-globals" for faster build
           noParse: [
-            'bower_components/backbone/backbone.js'
-            'bower_components/chaplin/chaplin.js'
-            'bower_components/cocktail/Cocktail.js'
-            'bower_components/underscore/underscore.js'
+            './bower_components/backbone/backbone.js'
+            './bower_components/chaplin/chaplin.js'
+            './bower_components/cocktail/Cocktail.js'
+            './bower_components/underscore/underscore.js'
           ]
         alias: [
-          'bower_components/backbone/backbone.js:backbone'
-          'bower_components/chaplin/chaplin.js:chaplin'
-          'bower_components/cocktail/Cocktail.js:cocktail'
-          'bower_components/underscore/underscore.js:underscore'
+          './bower_components/backbone/backbone.js:backbone'
+          './bower_components/chaplin/chaplin.js:chaplin'
+          './bower_components/cocktail/Cocktail.js:cocktail'
+          './bower_components/underscore/underscore.js:underscore'
           'hbsfy/runtime:hbsfy/runtime'
-          'client/source/buckets.coffee:buckets'
+          './client/source/buckets.coffee:buckets'
         ]
       app:
         files:
@@ -90,7 +90,7 @@ module.exports = (grunt) ->
 
     shell:
       mocha:
-        command: 'NODE_ENV=test ./node_modules/mocha/bin/mocha --compilers coffee:coffee-script/register --recursive test/server -b'
+        command: 'NODE_ENV=test ./node_modules/mocha/bin/mocha --compilers coffee:coffee-script/register --recursive test/server -b -c -t 5000'
       cov:
         command: 'NODE_ENV=test ./node_modules/mocha/bin/mocha --compilers coffee:coffee-script/register --recursive test/server --require blanket --reporter html-cov > coverage.html'
       publish:

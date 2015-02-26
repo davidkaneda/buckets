@@ -5,15 +5,23 @@ Route = require '../../models/route'
 module.exports = app = express()
 
 ###
+@apiDefine RoutesIntro
+@apiDescription Routes can be saved by Users and are a way to match frontend URL
+    patterns to templates.
+###
+
+###
 @api {get} /routes Get Routes
 @apiVersion 0.0.4
 @apiGroup Routes
-@apiGroupDescription Routes can be saved by Users and are a way to match frontend URL patterns to templates.
 @apiName GetRoutes
 
-@apiParam {String} template=index Currently, this is file-based, though it may be tracked in the database soon.
-@apiParam {String} urlPattern='/' An [Express-style URL pattern](https://github.com/component/path-to-regexp) (which captures named parameters).
-
+@apiParam {String} template=index Currently, this is file-based, though it may
+    be tracked in the database soon.
+@apiParam {String} urlPattern='/' An
+    [Express-style URL pattern](https://github.com/component/path-to-regexp)
+    (which captures named parameters).
+@apiUse RoutesIntro
 @apiPermission administrator
 
 @apiSuccessExample Success-Response:
@@ -45,7 +53,7 @@ HTTP/1.1 200 OK
 ]
 ###
 
-app.route('/routes')
+app.route '/routes'
   .get (req, res) ->
     return res.status(401).end() unless req.user?.hasRole ['administrator']
 
@@ -95,7 +103,7 @@ HTTP/1.1 204 No Content
 @apiPermission administrator
 ###
 
-app.route('/routes/:routeID')
+app.route '/routes/:routeID'
   .delete (req, res) ->
     return res.status(401).end() unless req.user?.hasRole ['administrator']
 

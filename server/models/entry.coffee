@@ -8,29 +8,24 @@ db = require '../lib/database'
 
 # Add a parser to Chrono to understand "now"
 # A bit hacky because Chrono doesn't support ms yet
-chrono.parsers.NowParser = (text, ref, opt) ->
+nowParser = new chrono.Parser
+nowParser.pattern = -> /now/i
+nowParser.extract = (text, ref, match, opt) ->
+  now = new Date()
+  new chrono.ParsedResult
+    ref: ref
+    text: match[0]
+    index: match.index
+    start:
+      year: now.getFullYear()
+      month: now.getMonth() + 1
+      day: now.getDate()
+      hour: now.getHours()
+      minute: now.getMinutes()
+      second: now.getSeconds() + 1
+      millisecond: now.getMilliseconds()
 
-  parser = chrono.Parser(text, ref, opt)
-
-  parser.pattern = -> /now/i
-  parser.extract = (text, index) ->
-    mentioned_text = text.substr(index).match(/now/i)[0];
-
-    now = new Date()
-    new chrono.ParseResult
-      referenceDate : ref
-      text : mentioned_text
-      index: index
-      start:
-        year: now.getFullYear()
-        month: now.getMonth()
-        day: now.getDate()
-        hour: now.getHours()
-        minute: now.getMinutes()
-        second: now.getSeconds() + 1
-        millisecond: now.getMilliseconds()
-
-  parser
+chrono.casual.parsers.push(nowParser)
 
 entrySchema = new mongoose.Schema
   title:
@@ -94,9 +89,9 @@ entrySchema.pre 'validate', (next) ->
     next()
 
 entrySchema.path('publishDate').set (val='') ->
-  parsed = chrono.parse(val)?[0]?.startDate
+  parsed = chrono.parse(val)?[0]?.start.date()
+  parsed.setMilliseconds(0)
   parsed || Date.now()
-
 
 entrySchema.path('description').validate (val) ->
   val?.length < 140
@@ -146,8 +141,8 @@ entrySchema.statics.findByParams = (params, callback) ->
 
     if settings.since or settings.until
       searchQuery.publishDate = {}
-      searchQuery.publishDate.$gt = new Date(chrono.parseDate settings.since) if settings.since
-      searchQuery.publishDate.$lte = new Date(chrono.parseDate settings.until) if settings.until
+      searchQuery.publishDate.$gt = chrono.parse(settings.since)[0].start.date() if settings.since
+      searchQuery.publishDate.$lte = chrono.parse(settings.until)[0].start.date() if settings.until
 
     @find searchQuery
       .populate
@@ -158,7 +153,7 @@ entrySchema.statics.findByParams = (params, callback) ->
         path: 'author'
         select: '-roles -last_active -date_created -activated'
         limit: 1
-      .select('-createdDate')
+      .select '-createdDate'
       .sort settings.sort
       .limit settings.limit
       .skip settings.skip
